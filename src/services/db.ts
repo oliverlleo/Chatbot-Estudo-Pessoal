@@ -82,5 +82,18 @@ export const dbService = {
       messages,
       updatedAt: Date.now()
     });
+  },
+
+  async updateChat(userId: string, chatId: string, data: Partial<ChatSession>): Promise<void> {
+    const docRef = doc(db, `users/${userId}/chats/${chatId}`);
+    await updateDoc(docRef, {
+      ...data,
+      updatedAt: Date.now()
+    });
+  },
+
+  async deleteChat(userId: string, chatId: string): Promise<void> {
+    const docRef = doc(db, `users/${userId}/chats/${chatId}`);
+    await deleteDoc(docRef);
   }
 };
