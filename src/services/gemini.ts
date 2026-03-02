@@ -216,13 +216,16 @@ const fetchFontes = async () => {
     'mwb_T_202603_07.rtf',
     'mwb_T_202603_08.rtf',
     'lmd_t.rtf',
-    'Instruções.doc'
+    'Instruções.docx',
+    'Instru#U00e7#U00f5es.docx'
   ];
 
   let filesContent = '';
+  const base = import.meta.env.BASE_URL || '/';
+
   for (const file of filesToTry) {
     try {
-      const res = await fetch(`/fontes/${file}`);
+      const res = await fetch(`${base}fontes/${file}`);
       if (res.ok) {
         const text = await res.text();
         filesContent += `\n\n--- CONTEÚDO DO ARQUIVO: ${file} ---\n${text}\n--- FIM DO ARQUIVO ---`;
@@ -243,6 +246,15 @@ export const geminiService = {
       let currentPrompt = agent === 'apostila' ? APOSTILA_PROMPT : SYSTEM_PROMPT;
       
       if (agent === 'apostila') {
+        const todaySP = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'America/Sao_Paulo',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(new Date());
+
+        currentPrompt = `Data atual (America/Sao_Paulo): ${todaySP}\n\n` + currentPrompt;
+
         const fontesContent = await fetchFontes();
         if (fontesContent) {
           currentPrompt += `\n\nOs seguintes arquivos foram encontrados na pasta de fontes e devem ser usados como base de conhecimento:\n${fontesContent}`;
