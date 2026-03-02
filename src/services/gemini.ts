@@ -204,21 +204,46 @@ Finalize perguntando e aguardando a resposta: "Deseja o texto completo para o di
 - Quando o usuário pedir JÓIAS (resposta de 45 segundos), você deve entregar a resposta de até 45 segundos + adicional de 40 segundos, sem perguntas extras.
 - Perguntas ao usuário só são permitidas para: (a) escolha de item (qual número), (b) resolver ambiguidade, (c) pedir um trecho que não foi localizado com segurança, (d) cumprir “Depois, pergunte:” quando a própria matéria exigir.`;
 
-const fetchFontes = async () => {
+const fetchFontes = async (todayString: string) => {
+  // Mapping of dates to specific RTF files, as provided in the prompt.
+  // We use the start and end dates to determine which file to load.
+  const dateMapping = [
+    { file: 'mwb_T_202603_00.rtf', start: '2026-03-02', end: '2026-03-08' },
+    { file: 'mwb_T_202603_01.rtf', start: '2026-03-09', end: '2026-03-15' },
+    { file: 'mwb_T_202603_02.rtf', start: '2026-03-16', end: '2026-03-22' },
+    { file: 'mwb_T_202603_03.rtf', start: '2026-03-23', end: '2026-03-29' },
+    // mwb_T_202603_04.rtf -> Celebração (special, we might not auto-load unless it matches a date if we wanted, but we'll stick to ranges)
+    { file: 'mwb_T_202603_05.rtf', start: '2026-04-06', end: '2026-04-12' },
+    { file: 'mwb_T_202603_06.rtf', start: '2026-04-13', end: '2026-04-19' },
+    { file: 'mwb_T_202603_07.rtf', start: '2026-04-20', end: '2026-04-26' },
+    { file: 'mwb_T_202603_08.rtf', start: '2026-04-27', end: '2026-05-03' }
+  ];
+
+  let targetRtfFile = '';
+  const currentDate = new Date(todayString);
+  currentDate.setHours(0, 0, 0, 0);
+
+  for (const mapping of dateMapping) {
+    const start = new Date(mapping.start);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(mapping.end);
+    end.setHours(23, 59, 59, 999);
+
+    if (currentDate >= start && currentDate <= end) {
+      targetRtfFile = mapping.file;
+      break;
+    }
+  }
+
   const filesToTry = [
-    'mwb_T_202603_00.rtf',
-    'mwb_T_202603_01.rtf',
-    'mwb_T_202603_02.rtf',
-    'mwb_T_202603_03.rtf',
-    'mwb_T_202603_04.rtf',
-    'mwb_T_202603_05.rtf',
-    'mwb_T_202603_06.rtf',
-    'mwb_T_202603_07.rtf',
-    'mwb_T_202603_08.rtf',
     'lmd_t.rtf',
     'Instruções.docx',
     'Instru#U00e7#U00f5es.docx'
   ];
+
+  if (targetRtfFile) {
+    filesToTry.unshift(targetRtfFile);
+  }
 
   let filesContent = '';
   const base = import.meta.env.BASE_URL || '/';
@@ -255,7 +280,7 @@ export const geminiService = {
 
         currentPrompt = `Data atual (America/Sao_Paulo): ${todaySP}\n\n` + currentPrompt;
 
-        const fontesContent = await fetchFontes();
+        const fontesContent = await fetchFontes(todaySP);
         if (fontesContent) {
           currentPrompt += `\n\nOs seguintes arquivos foram encontrados na pasta de fontes e devem ser usados como base de conhecimento:\n${fontesContent}`;
         }
@@ -282,15 +307,31 @@ export const geminiService = {
         parts: [{ text: newMessage }]
       });
 
-      const response = await ai.models.generateContent({
-        model: model,
-        contents: contents,
-        config: {
-          systemInstruction: currentPrompt,
-        }
-      });
+      const callApi = async (retryCount = 0): Promise<string> => {
+        try {
+          const response = await ai.models.generateContent({
+            model: model,
+            contents: contents,
+            config: {
+              systemInstruction: currentPrompt,
+            }
+          });
+          return response.text || "Desculpe, não consegui gerar uma resposta.";
+        } catch (error: any) {
+          // Check if it's a 429 error or quota exceeded
+          const isRateLimit = error?.status === 429 || error?.message?.includes("429") || error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED");
 
-      return response.text || "Desculpe, não consegui gerar uma resposta.";
+          if (isRateLimit && retryCount < 2) {
+            console.warn(`Rate limit reached (429/Quota). Retrying in 15 seconds... (Attempt ${retryCount + 1})`);
+            await new Promise(resolve => setTimeout(resolve, 15000)); // wait 15 seconds
+            return callApi(retryCount + 1);
+          }
+
+          throw error;
+        }
+      };
+
+      return await callApi();
     } catch (error) {
       console.error("Error calling Gemini:", error);
       throw error;
