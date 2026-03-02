@@ -170,6 +170,8 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
           >
             <option value="gemini-3-flash-preview">Gemini 3 Flash (Rápido)</option>
             <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Melhor)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
           </select>
           
           <button 
