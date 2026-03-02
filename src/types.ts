@@ -28,7 +28,7 @@ export interface Message {
 export interface ChatSession {
   id: string;
   title: string;
-  agent?: 'estudo' | 'apostila';
+  agent?: 'estudo' | 'apostila' | 'texto-diario' | 'a-sentinela' | 'historias-biblicas';
   messages: Message[];
   createdAt: number;
   updatedAt: number;
