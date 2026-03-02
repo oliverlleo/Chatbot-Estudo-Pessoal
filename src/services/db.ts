@@ -50,14 +50,15 @@ export const dbService = {
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatSession));
   },
 
-  async createChat(userId: string, title: string): Promise<ChatSession> {
+  async createChat(userId: string, title: string, agent: 'estudo' | 'apostila' = 'estudo'): Promise<ChatSession> {
     const docRef = await addDoc(collection(db, `users/${userId}/chats`), {
       title,
+      agent,
       messages: [],
       createdAt: Date.now(),
       updatedAt: Date.now()
     });
-    return { id: docRef.id, title, messages: [], createdAt: Date.now(), updatedAt: Date.now() };
+    return { id: docRef.id, title, agent, messages: [], createdAt: Date.now(), updatedAt: Date.now() };
   },
 
   async updateChatMessages(userId: string, chatId: string, messages: Message[]): Promise<void> {

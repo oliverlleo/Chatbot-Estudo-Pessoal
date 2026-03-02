@@ -21,6 +21,7 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
+  const [selectedModel, setSelectedModel] = useState('gemini-3.1-pro-preview');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -75,7 +76,7 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
       await dbService.updateChatMessages(user.uid, chat.id, updatedMessages);
       
       // Get AI response
-      const responseText = await geminiService.sendMessage(localMessages, newMessage.content);
+      const responseText = await geminiService.sendMessage(localMessages, newMessage.content, selectedModel, chat.agent || 'estudo');
       
       const modelMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -130,20 +131,31 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
       {/* Chat Header */}
       <div className="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-[#1a1019]/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#87D68D] to-[#114B5F] rounded-lg flex items-center justify-center">
+          <div className={clsx("w-8 h-8 rounded-lg flex items-center justify-center", chat.agent === 'apostila' ? 'bg-gradient-to-br from-[#F8C537] to-[#d4a21e]' : 'bg-gradient-to-br from-[#87D68D] to-[#114B5F]')}>
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <h2 className="font-semibold text-white truncate max-w-[200px] sm:max-w-xs">{chat.title || 'Novo Estudo'}</h2>
         </div>
         
-        <button 
-          onClick={handleSaveToNotebook}
-          disabled={isSaving || localMessages.length === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-[#F8C537]/10 hover:bg-[#F8C537]/20 text-[#F8C537] rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-        >
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          <span className="hidden sm:inline">{isSaving ? 'Salvando...' : 'Salvar no Caderno'}</span>
-        </button>
+        <div className="flex items-center gap-4">
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            className="bg-black/30 border border-white/10 text-white text-sm rounded-lg focus:ring-[#87D68D] focus:border-[#87D68D] block p-2 outline-none"
+          >
+            <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Melhor)</option>
+            <option value="gemini-3-flash-preview">Gemini 3 Flash (Rápido)</option>
+          </select>
+          
+          <button 
+            onClick={handleSaveToNotebook}
+            disabled={isSaving || localMessages.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-[#F8C537]/10 hover:bg-[#F8C537]/20 text-[#F8C537] rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            <span className="hidden sm:inline">{isSaving ? 'Salvando...' : 'Salvar no Caderno'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Messages Area */}
@@ -166,9 +178,9 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
                   : "bg-[#1a1019] border border-white/10 text-gray-200 rounded-tl-sm"
               )}>
                 {msg.role === 'model' && (
-                  <div className="flex items-center gap-2 mb-2 text-[#87D68D] text-xs font-semibold uppercase tracking-wider">
+                  <div className={clsx("flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider", chat.agent === 'apostila' ? 'text-[#F8C537]' : 'text-[#87D68D]')}>
                     <Sparkles className="w-3 h-3" />
-                    Estudo Pessoal
+                    {chat.agent === 'apostila' ? 'Apostila' : 'Estudo Pessoal'}
                   </div>
                 )}
                 <div className="prose prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10">

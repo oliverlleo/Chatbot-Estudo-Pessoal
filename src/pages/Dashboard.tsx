@@ -42,9 +42,10 @@ export default function Dashboard() {
     setNotebooks(allNotebooks);
   };
 
-  const handleNewChat = async () => {
+  const handleNewChat = async (agent: 'estudo' | 'apostila') => {
     if (!user) return;
-    const newChat = await dbService.createChat(user.uid, 'Novo Estudo');
+    const title = agent === 'apostila' ? 'Nova Apostila' : 'Novo Estudo';
+    const newChat = await dbService.createChat(user.uid, title, agent);
     setChats([newChat, ...chats]);
     setActiveChatId(newChat.id);
     setActiveTab('chat');

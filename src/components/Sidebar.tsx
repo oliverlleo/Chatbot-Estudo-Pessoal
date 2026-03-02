@@ -2,6 +2,7 @@ import React from 'react';
 import { Collection, Notebook, ChatSession } from '../types';
 import { MessageSquare, Book, Folder, Plus, LogOut, User } from 'lucide-react';
 import { motion } from 'motion/react';
+import clsx from 'clsx';
 
 interface SidebarProps {
   collections: Collection[];
@@ -12,7 +13,7 @@ interface SidebarProps {
   activeNotebookId: string | null;
   onSelectChat: (id: string) => void;
   onSelectNotebook: (id: string) => void;
-  onNewChat: () => void;
+  onNewChat: (agent: 'estudo' | 'apostila') => void;
   onLogout: () => void;
   userEmail: string;
 }
@@ -41,12 +42,20 @@ export default function Sidebar({
         </h1>
       </div>
 
-      <button
-        onClick={onNewChat}
-        className="w-full py-3 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center justify-center gap-2 transition-all mb-6 text-sm font-medium"
-      >
-        <Plus className="w-4 h-4" /> Novo Estudo
-      </button>
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => onNewChat('estudo')}
+          className="flex-1 py-2 px-2 bg-gradient-to-br from-[#87D68D]/20 to-[#114B5F]/20 hover:from-[#87D68D]/30 hover:to-[#114B5F]/30 border border-[#87D68D]/30 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-medium text-[#87D68D]"
+        >
+          <Plus className="w-4 h-4" /> Estudo
+        </button>
+        <button
+          onClick={() => onNewChat('apostila')}
+          className="flex-1 py-2 px-2 bg-gradient-to-br from-[#F8C537]/20 to-[#d4a21e]/20 hover:from-[#F8C537]/30 hover:to-[#d4a21e]/30 border border-[#F8C537]/30 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-medium text-[#F8C537]"
+        >
+          <Plus className="w-4 h-4" /> Apostila
+        </button>
+      </div>
 
       <div className="flex-1 overflow-y-auto space-y-6 custom-scrollbar">
         {/* Chats Section */}
@@ -59,11 +68,11 @@ export default function Sidebar({
                 onClick={() => onSelectChat(chat.id)}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-3 transition-colors ${
                   activeTab === 'chat' && activeChatId === chat.id 
-                    ? 'bg-[#114B5F]/40 text-[#87D68D]' 
+                    ? chat.agent === 'apostila' ? 'bg-[#F8C537]/20 text-[#F8C537]' : 'bg-[#114B5F]/40 text-[#87D68D]' 
                     : 'text-gray-300 hover:bg-white/5'
                 }`}
               >
-                <MessageSquare className="w-4 h-4 opacity-70" />
+                <MessageSquare className={clsx("w-4 h-4 opacity-70", chat.agent === 'apostila' && activeTab === 'chat' && activeChatId === chat.id ? 'text-[#F8C537]' : '')} />
                 <span className="truncate">{chat.title || 'Novo Estudo'}</span>
               </button>
             ))}
