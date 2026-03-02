@@ -263,7 +263,7 @@ const fetchFontes = async (todayString: string) => {
 };
 
 export const geminiService = {
-  async sendMessage(history: Message[], newMessage: string, model: string = "gemini-3-flash-preview", agent: 'estudo' | 'apostila' = 'estudo', apiKey: string): Promise<string> {
+  async sendMessage(history: Message[], newMessage: string, model: string = "gemini-2.5-flash", agent: 'estudo' | 'apostila' = 'estudo', apiKey: string): Promise<string> {
     if (!apiKey) throw new Error("MISSING_API_KEY");
     const ai = new GoogleGenAI({ apiKey });
 
@@ -381,7 +381,7 @@ Retorne APENAS um JSON válido com o seguinte formato, sem formatação markdown
 }`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         contents: prompt,
         config: {
           responseMimeType: "application/json"
