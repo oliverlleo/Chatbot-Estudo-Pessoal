@@ -156,7 +156,12 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
       {/* Chat Header */}
       <div className="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-[#1a1019]/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <div className={clsx("w-8 h-8 rounded-lg flex items-center justify-center", chat.agent === 'apostila' ? 'bg-gradient-to-br from-[#F8C537] to-[#d4a21e]' : 'bg-gradient-to-br from-[#87D68D] to-[#114B5F]')}>
+          <div className={clsx("w-8 h-8 rounded-lg flex items-center justify-center",
+            chat.agent === 'apostila' ? 'bg-gradient-to-br from-[#F8C537] to-[#d4a21e]' :
+            chat.agent === 'texto-diario' ? 'bg-gradient-to-br from-[#FF9800] to-[#E65100]' :
+            chat.agent === 'a-sentinela' ? 'bg-gradient-to-br from-[#4CAF50] to-[#1B5E20]' :
+            chat.agent === 'historias-biblicas' ? 'bg-gradient-to-br from-[#2196F3] to-[#0D47A1]' :
+            'bg-gradient-to-br from-[#87D68D] to-[#114B5F]')}>
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <h2 className="font-semibold text-white truncate max-w-[200px] sm:max-w-xs">{chat.title || 'Novo Estudo'}</h2>
@@ -205,9 +210,18 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
                   : "bg-[#1a1019] border border-white/10 text-gray-200 rounded-tl-sm"
               )}>
                 {msg.role === 'model' && (
-                  <div className={clsx("flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider", chat.agent === 'apostila' ? 'text-[#F8C537]' : 'text-[#87D68D]')}>
+                  <div className={clsx("flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider",
+                    chat.agent === 'apostila' ? 'text-[#F8C537]' :
+                    chat.agent === 'texto-diario' ? 'text-[#FF9800]' :
+                    chat.agent === 'a-sentinela' ? 'text-[#4CAF50]' :
+                    chat.agent === 'historias-biblicas' ? 'text-[#2196F3]' :
+                    'text-[#87D68D]')}>
                     <Sparkles className="w-3 h-3" />
-                    {chat.agent === 'apostila' ? 'Apostila' : 'Estudo Pessoal'}
+                    {chat.agent === 'apostila' ? 'Apostila' :
+                     chat.agent === 'texto-diario' ? 'Texto Diário' :
+                     chat.agent === 'a-sentinela' ? 'A Sentinela' :
+                     chat.agent === 'historias-biblicas' ? 'Histórias Bíblicas' :
+                     'Estudo Pessoal'}
                   </div>
                 )}
                 <div className="prose prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10">

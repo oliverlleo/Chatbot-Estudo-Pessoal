@@ -14,7 +14,7 @@ interface SidebarProps {
   activeNotebookId: string | null;
   onSelectChat: (id: string) => void;
   onSelectNotebook: (id: string) => void;
-  onNewChat: (agent: 'estudo' | 'apostila') => void;
+  onNewChat: (agent: 'estudo' | 'apostila' | 'texto-diario' | 'a-sentinela' | 'historias-biblicas') => void;
   onOpenSettings: () => void;
   onLogout: () => void;
   userEmail: string;
@@ -141,19 +141,41 @@ export default function Sidebar({
         </h1>
       </div>
 
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => onNewChat('estudo')}
-          className="flex-1 py-2 px-2 bg-gradient-to-br from-[#87D68D]/20 to-[#114B5F]/20 hover:from-[#87D68D]/30 hover:to-[#114B5F]/30 border border-[#87D68D]/30 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-medium text-[#87D68D]"
-        >
-          <Plus className="w-4 h-4" /> Estudo
-        </button>
-        <button
-          onClick={() => onNewChat('apostila')}
-          className="flex-1 py-2 px-2 bg-gradient-to-br from-[#F8C537]/20 to-[#d4a21e]/20 hover:from-[#F8C537]/30 hover:to-[#d4a21e]/30 border border-[#F8C537]/30 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-medium text-[#F8C537]"
-        >
-          <Plus className="w-4 h-4" /> Apostila
-        </button>
+      <div className="flex flex-col gap-2 mb-6">
+        <div className="flex gap-2">
+          <button
+            onClick={() => onNewChat('estudo')}
+            className="flex-1 py-2 px-2 bg-gradient-to-br from-[#87D68D]/20 to-[#114B5F]/20 hover:from-[#87D68D]/30 hover:to-[#114B5F]/30 border border-[#87D68D]/30 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-medium text-[#87D68D]"
+          >
+            <Plus className="w-4 h-4" /> Estudo
+          </button>
+          <button
+            onClick={() => onNewChat('apostila')}
+            className="flex-1 py-2 px-2 bg-gradient-to-br from-[#F8C537]/20 to-[#d4a21e]/20 hover:from-[#F8C537]/30 hover:to-[#d4a21e]/30 border border-[#F8C537]/30 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-xs font-medium text-[#F8C537]"
+          >
+            <Plus className="w-4 h-4" /> Apostila
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onNewChat('texto-diario')}
+            className="flex-1 py-2 px-2 bg-gradient-to-br from-[#FF9800]/20 to-[#E65100]/20 hover:from-[#FF9800]/30 hover:to-[#E65100]/30 border border-[#FF9800]/30 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-[10px] font-medium text-[#FF9800]"
+          >
+            <Plus className="w-4 h-4" /> Texto Diário
+          </button>
+          <button
+            onClick={() => onNewChat('a-sentinela')}
+            className="flex-1 py-2 px-2 bg-gradient-to-br from-[#4CAF50]/20 to-[#1B5E20]/20 hover:from-[#4CAF50]/30 hover:to-[#1B5E20]/30 border border-[#4CAF50]/30 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-[10px] font-medium text-[#4CAF50]"
+          >
+            <Plus className="w-4 h-4" /> A Sentinela
+          </button>
+          <button
+            onClick={() => onNewChat('historias-biblicas')}
+            className="flex-1 py-2 px-2 bg-gradient-to-br from-[#2196F3]/20 to-[#0D47A1]/20 hover:from-[#2196F3]/30 hover:to-[#0D47A1]/30 border border-[#2196F3]/30 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-[10px] text-center font-medium text-[#2196F3]"
+          >
+            <Plus className="w-4 h-4" /> Histórias Bíblicas
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-6 custom-scrollbar">
