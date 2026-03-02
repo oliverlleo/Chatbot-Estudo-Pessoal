@@ -489,39 +489,35 @@ cada uma em até 40 segundos.
 f) Lição: O que ensina sobre JEOVÁ e aplicações práticas para os cristãos atuais.`;
 
 const fetchFontes = async (todayString: string, agent: 'estudo' | 'apostila' | 'texto-diario' | 'a-sentinela' | 'historias-biblicas') => {
-  // Mapping of dates to specific RTF files, as provided in the prompt.
-  // We use the start and end dates to determine which file to load.
-  const dateMapping = [
-    { file: 'mwb_T_202603_00.rtf', start: '2026-03-02', end: '2026-03-08' },
-    { file: 'mwb_T_202603_01.rtf', start: '2026-03-09', end: '2026-03-15' },
-    { file: 'mwb_T_202603_02.rtf', start: '2026-03-16', end: '2026-03-22' },
-    { file: 'mwb_T_202603_03.rtf', start: '2026-03-23', end: '2026-03-29' },
-    // mwb_T_202603_04.rtf -> Celebração (special, we might not auto-load unless it matches a date if we wanted, but we'll stick to ranges)
-    { file: 'mwb_T_202603_05.rtf', start: '2026-04-06', end: '2026-04-12' },
-    { file: 'mwb_T_202603_06.rtf', start: '2026-04-13', end: '2026-04-19' },
-    { file: 'mwb_T_202603_07.rtf', start: '2026-04-20', end: '2026-04-26' },
-    { file: 'mwb_T_202603_08.rtf', start: '2026-04-27', end: '2026-05-03' }
-  ];
-
-  let targetRtfFile = '';
   const currentDate = new Date(todayString);
   currentDate.setHours(0, 0, 0, 0);
 
-  for (const mapping of dateMapping) {
-    const start = new Date(mapping.start);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(mapping.end);
-    end.setHours(23, 59, 59, 999);
-
-    if (currentDate >= start && currentDate <= end) {
-      targetRtfFile = mapping.file;
-      break;
-    }
-  }
-
+  let targetRtfFile = '';
   let filesToTry: string[] = [];
 
   if (agent === 'apostila') {
+    const dateMapping = [
+      { file: 'mwb_T_202603_00.rtf', start: '2026-03-02', end: '2026-03-08' },
+      { file: 'mwb_T_202603_01.rtf', start: '2026-03-09', end: '2026-03-15' },
+      { file: 'mwb_T_202603_02.rtf', start: '2026-03-16', end: '2026-03-22' },
+      { file: 'mwb_T_202603_03.rtf', start: '2026-03-23', end: '2026-03-29' },
+      { file: 'mwb_T_202603_05.rtf', start: '2026-04-06', end: '2026-04-12' },
+      { file: 'mwb_T_202603_06.rtf', start: '2026-04-13', end: '2026-04-19' },
+      { file: 'mwb_T_202603_07.rtf', start: '2026-04-20', end: '2026-04-26' },
+      { file: 'mwb_T_202603_08.rtf', start: '2026-04-27', end: '2026-05-03' }
+    ];
+
+    for (const mapping of dateMapping) {
+      const start = new Date(mapping.start);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(mapping.end);
+      end.setHours(23, 59, 59, 999);
+      if (currentDate >= start && currentDate <= end) {
+        targetRtfFile = mapping.file;
+        break;
+      }
+    }
+
     filesToTry = [
       'lmd_t.rtf',
       'Instruções.docx',
@@ -533,13 +529,32 @@ const fetchFontes = async (todayString: string, agent: 'estudo' | 'apostila' | '
   } else if (agent === 'texto-diario') {
     filesToTry = ['es26_T.pdf', 'Matinais.csv'];
   } else if (agent === 'a-sentinela') {
-    filesToTry = [
-      'w_T_202601_01.RTF',
-      'w_T_202601_02.RTF',
-      'w_T_202601_03.RTF',
-      'w_T_202601_04.RTF',
-      'w_T_202601_05.RTF'
+    const dateMappingSentinela = [
+      { file: 'w_T_202601_01.RTF', start: '2026-03-02', end: '2026-03-08' },
+      { file: 'w_T_202601_02.RTF', start: '2026-03-09', end: '2026-03-15' },
+      { file: 'w_T_202601_03.RTF', start: '2026-03-16', end: '2026-03-22' },
+      { file: 'w_T_202601_04.RTF', start: '2026-03-23', end: '2026-03-29' },
+      { file: 'w_T_202601_05.RTF', start: '2026-03-30', end: '2026-04-05' }
     ];
+
+    for (const mapping of dateMappingSentinela) {
+      const start = new Date(mapping.start);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(mapping.end);
+      end.setHours(23, 59, 59, 999);
+      if (currentDate >= start && currentDate <= end) {
+        targetRtfFile = mapping.file;
+        break;
+      }
+    }
+
+    if (targetRtfFile) {
+      filesToTry = [targetRtfFile];
+    } else {
+      // Se não encontrou da semana atual, pra não dar erro de limite, não vai carregar tudo.
+      // Vai deixar o Prompt ativar a trava crítica para o usuário adicionar.
+      filesToTry = [];
+    }
   } else if (agent === 'historias-biblicas') {
     // We will attempt to load the common ones or specifically requested.
     // According to the prompt, history files will be uploaded, we don't have a specific list.
@@ -565,7 +580,7 @@ const fetchFontes = async (todayString: string, agent: 'estudo' | 'apostila' | '
 };
 
 export const geminiService = {
-  async sendMessage(history: Message[], newMessage: string, model: string = "gemini-2.5-flash", agent: 'estudo' | 'apostila' | 'texto-diario' | 'a-sentinela' | 'historias-biblicas' = 'estudo', apiKey: string): Promise<string> {
+  async sendMessage(history: Message[], newMessage: string, model: string = "gemini-1.5-flash", agent: 'estudo' | 'apostila' | 'texto-diario' | 'a-sentinela' | 'historias-biblicas' = 'estudo', apiKey: string): Promise<string> {
     if (!apiKey) throw new Error("MISSING_API_KEY");
     const ai = new GoogleGenAI({ apiKey });
 
@@ -687,7 +702,7 @@ Retorne APENAS um JSON válido com o seguinte formato, sem formatação markdown
 }`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-1.5-flash",
         contents: prompt,
         config: {
           responseMimeType: "application/json"
