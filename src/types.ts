@@ -32,4 +32,6 @@ export interface ChatSession {
   messages: Message[];
   createdAt: number;
   updatedAt: number;
+  isPinned?: boolean;
+  isArchived?: boolean;
 }

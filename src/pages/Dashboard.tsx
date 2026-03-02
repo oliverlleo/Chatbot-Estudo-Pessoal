@@ -88,6 +88,8 @@ export default function Dashboard() {
           onOpenSettings={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}
           onLogout={logout}
           userEmail={user?.email || ''}
+          onUpdateChat={loadData}
+          userId={user?.uid || ''}
         />
       </div>
 
@@ -111,6 +113,8 @@ export default function Dashboard() {
           <SettingsArea 
             currentApiKey={userApiKey}
             onSaveApiKey={(key) => setUserApiKey(key)}
+            chats={chats}
+            onUpdateChat={loadData}
           />
         )}
       </div>
