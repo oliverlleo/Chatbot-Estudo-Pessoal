@@ -91,10 +91,19 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
       // Save AI message to DB
       await dbService.updateChatMessages(user.uid, chat.id, finalMessages);
       onUpdateChat();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to get response:", error);
-      // Revert local state on error if needed, or show error message
-      alert("Erro ao obter resposta da IA.");
+      
+      let errorMessage = "Erro ao obter resposta da IA.";
+      if (error?.message?.includes('leaked')) {
+        errorMessage = "Sua chave de API do Gemini vazou e foi bloqueada pelo Google. Por favor, configure uma nova chave no painel de Secrets (Segredos) do AI Studio.";
+      } else if (error?.message?.includes('quota') || error?.message?.includes('429')) {
+        errorMessage = "Você excedeu o limite de uso (quota) da sua chave de API do Gemini. Por favor, verifique seu plano ou configure uma nova chave no painel de Secrets.";
+      } else if (error?.message?.includes('MISSING_API_KEY')) {
+        errorMessage = "Chave de API do Gemini não configurada. Por favor, adicione-a no painel de Secrets do AI Studio.";
+      }
+
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }

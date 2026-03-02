@@ -1,7 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 import { Message } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "AIzaSyDc3fb3_a1hgHqK_ZICxeEGpOxokDHZR_8" });
+const apiKey = process.env.GEMINI_API_KEY || "AIzaSyA7_w0KGPEVIcuWsWOL3lqDu8IJ8CTm0G8";
+const ai = new GoogleGenAI({ apiKey });
 
 const SYSTEM_PROMPT = `Seja um pesquisador CURIOSO querendo pesquisar todos os porquês de ação ou mesmo falta da ação, quem estava envolvido, onde aconteceu (detalhes geográficos), como foi feito, qual era a situação, quando isso aconteceu, etc.
 
