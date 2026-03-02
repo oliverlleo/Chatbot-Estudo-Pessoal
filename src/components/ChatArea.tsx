@@ -23,7 +23,7 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
-  const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash-8b');
+  const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash-002');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -173,9 +173,9 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
             onChange={(e) => setSelectedModel(e.target.value)}
             className="bg-black/30 border border-white/10 text-white text-sm rounded-lg focus:ring-[#87D68D] focus:border-[#87D68D] block p-2 outline-none"
           >
-            <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash 8B (Recomendado)</option>
-            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash Latest</option>
-            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            <option value="gemini-1.5-flash-002">Gemini 1.5 Flash 002 (Recomendado)</option>
+            <option value="gemini-1.5-flash-001">Gemini 1.5 Flash 001</option>
+            <option value="gemini-1.5-pro-002">Gemini 1.5 Pro 002</option>
             <option value="gemini-3-flash-preview">Gemini 3 Flash (Rápido)</option>
             <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Melhor)</option>
             <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
