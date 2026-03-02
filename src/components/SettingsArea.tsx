@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Key, Loader2 } from 'lucide-react';
+import { Settings, Save, Key, Loader2, Archive, MessageSquare, RotateCcw } from 'lucide-react';
 import { dbService } from '../services/db';
 import { useAuth } from '../contexts/AuthContext';
+import { ChatSession } from '../types';
 
 interface SettingsAreaProps {
   currentApiKey: string;
   onSaveApiKey: (key: string) => void;
+  chats: ChatSession[];
+  onUpdateChat: () => void;
 }
 
-export default function SettingsArea({ currentApiKey, onSaveApiKey }: SettingsAreaProps) {
+export default function SettingsArea({ currentApiKey, onSaveApiKey, chats, onUpdateChat }: SettingsAreaProps) {
   const { user } = useAuth();
   const [apiKey, setApiKey] = useState(currentApiKey);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
     setApiKey(currentApiKey);
@@ -33,6 +37,14 @@ export default function SettingsArea({ currentApiKey, onSaveApiKey }: SettingsAr
       setIsSaving(false);
     }
   };
+
+  const handleRestoreChat = async (chatId: string) => {
+    if (!user) return;
+    await dbService.updateChat(user.uid, chatId, { isArchived: false });
+    onUpdateChat();
+  };
+
+  const archivedChats = chats.filter(c => c.isArchived);
 
   return (
     <div className="flex flex-col h-full bg-[#241623] relative">
@@ -97,6 +109,51 @@ export default function SettingsArea({ currentApiKey, onSaveApiKey }: SettingsAr
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="bg-[#1a1019] border border-white/5 rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                <Archive className="w-5 h-5 text-gray-400" />
+                Conversas Arquivadas
+              </h3>
+              <button
+                onClick={() => setShowArchived(!showArchived)}
+                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-sm text-white rounded-xl font-medium transition-all"
+              >
+                {showArchived ? 'Ocultar Arquivadas' : 'Mostrar Arquivadas'}
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+              Aqui você pode visualizar todas as conversas que foram arquivadas. Você pode restaurá-las para a barra lateral a qualquer momento.
+            </p>
+
+            {showArchived && (
+              <div className="space-y-2 mt-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                {archivedChats.length === 0 ? (
+                  <div className="text-center py-8 text-sm text-gray-500 bg-black/20 rounded-xl border border-white/5">
+                    Nenhuma conversa arquivada no momento.
+                  </div>
+                ) : (
+                  archivedChats.map(chat => (
+                    <div key={chat.id} className="flex items-center justify-between p-3 bg-black/20 hover:bg-black/40 border border-white/5 rounded-xl transition-all group">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <MessageSquare className="w-4 h-4 text-gray-500 shrink-0" />
+                        <span className="text-sm text-gray-300 truncate">{chat.title}</span>
+                      </div>
+                      <button
+                        onClick={() => handleRestoreChat(chat.id)}
+                        className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 px-3 py-1.5 bg-[#87D68D]/10 hover:bg-[#87D68D]/20 text-[#87D68D] rounded-lg text-xs font-medium transition-all shrink-0"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        Restaurar
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
