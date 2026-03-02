@@ -23,7 +23,7 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
-  const [selectedModel, setSelectedModel] = useState('gemini-3.1-pro-preview');
+  const [selectedModel, setSelectedModel] = useState('gemini-3-flash-preview');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -168,8 +168,8 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
             onChange={(e) => setSelectedModel(e.target.value)}
             className="bg-black/30 border border-white/10 text-white text-sm rounded-lg focus:ring-[#87D68D] focus:border-[#87D68D] block p-2 outline-none"
           >
-            <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Melhor)</option>
             <option value="gemini-3-flash-preview">Gemini 3 Flash (Rápido)</option>
+            <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Melhor)</option>
           </select>
           
           <button 
