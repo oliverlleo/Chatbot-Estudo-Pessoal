@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [userApiKey, setUserApiKey] = useState<string>('');
+  const [userGroqKey, setUserGroqKey] = useState<string>('');
   
   const [activeTab, setActiveTab] = useState<'chat' | 'notebook' | 'settings'>('chat');
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -37,6 +38,9 @@ export default function Dashboard() {
     setChats(chs);
     if (settings.apiKey) {
       setUserApiKey(settings.apiKey);
+    }
+    if (settings.groqApiKey) {
+      setUserGroqKey(settings.groqApiKey);
     }
     
     // Load all notebooks for all collections
@@ -102,6 +106,7 @@ export default function Dashboard() {
             collections={collections}
             onNotebookSaved={loadData}
             userApiKey={userApiKey}
+            userGroqKey={userGroqKey}
             onOpenSettings={() => setActiveTab('settings')}
           />
         ) : activeTab === 'notebook' ? (
@@ -112,7 +117,9 @@ export default function Dashboard() {
         ) : (
           <SettingsArea 
             currentApiKey={userApiKey}
+            currentGroqKey={userGroqKey}
             onSaveApiKey={(key) => setUserApiKey(key)}
+            onSaveGroqKey={(key) => setUserGroqKey(key)}
             chats={chats}
             onUpdateChat={loadData}
           />

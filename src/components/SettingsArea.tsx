@@ -6,14 +6,17 @@ import { ChatSession } from '../types';
 
 interface SettingsAreaProps {
   currentApiKey: string;
+  currentGroqKey: string;
   onSaveApiKey: (key: string) => void;
+  onSaveGroqKey: (key: string) => void;
   chats: ChatSession[];
   onUpdateChat: () => void;
 }
 
-export default function SettingsArea({ currentApiKey, onSaveApiKey, chats, onUpdateChat }: SettingsAreaProps) {
+export default function SettingsArea({ currentApiKey, currentGroqKey, onSaveApiKey, onSaveGroqKey, chats, onUpdateChat }: SettingsAreaProps) {
   const { user } = useAuth();
   const [apiKey, setApiKey] = useState(currentApiKey);
+  const [groqKey, setGroqKey] = useState(currentGroqKey);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [showArchived, setShowArchived] = useState(false);
@@ -22,13 +25,18 @@ export default function SettingsArea({ currentApiKey, onSaveApiKey, chats, onUpd
     setApiKey(currentApiKey);
   }, [currentApiKey]);
 
+  useEffect(() => {
+    setGroqKey(currentGroqKey);
+  }, [currentGroqKey]);
+
   const handleSave = async () => {
     if (!user) return;
     setIsSaving(true);
     setMessage('');
     try {
-      await dbService.saveUserSettings(user.uid, apiKey);
+      await dbService.saveUserSettings(user.uid, apiKey, groqKey);
       onSaveApiKey(apiKey);
+      onSaveGroqKey(groqKey);
       setMessage('Configurações salvas com sucesso!');
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -72,26 +80,47 @@ export default function SettingsArea({ currentApiKey, onSaveApiKey, chats, onUpd
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  API Key
+                  Gemini API Key
                 </label>
                 <input
                   type="password"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="AIzaSy..."
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#87D68D]/50 transition-all"
+                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#87D68D]/50 transition-all mb-4"
+                />
+
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Groq API Key (Para Llama 3)
+                </label>
+                <input
+                  type="password"
+                  value={groqKey}
+                  onChange={(e) => setGroqKey(e.target.value)}
+                  placeholder="gsk_..."
+                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[#F8C537]/50 transition-all"
                 />
               </div>
               
-              <div className="flex items-center justify-between pt-4">
-                <a 
-                  href="https://aistudio.google.com/app/apikey" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-[#87D68D] hover:underline"
-                >
-                  Obter uma chave de API
-                </a>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 gap-4">
+                <div className="flex flex-col gap-1">
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-[#87D68D] hover:underline"
+                  >
+                    Obter chave do Gemini
+                  </a>
+                  <a
+                    href="https://console.groq.com/keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-[#F8C537] hover:underline"
+                  >
+                    Obter chave da Groq
+                  </a>
+                </div>
                 
                 <button
                   onClick={handleSave}

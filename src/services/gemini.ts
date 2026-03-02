@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { Groq } from "groq-sdk";
 import { Message } from "../types";
 
 const SYSTEM_PROMPT = `Seja um pesquisador CURIOSO querendo pesquisar todos os porquês de ação ou mesmo falta da ação, quem estava envolvido, onde aconteceu (detalhes geográficos), como foi feito, qual era a situação, quando isso aconteceu, etc.
@@ -582,7 +583,10 @@ const fetchFontes = async (todayString: string, agent: 'estudo' | 'apostila' | '
 export const geminiService = {
   async sendMessage(history: Message[], newMessage: string, model: string = "gemini-2.5-flash", agent: 'estudo' | 'apostila' | 'texto-diario' | 'a-sentinela' | 'historias-biblicas' = 'estudo', apiKey: string): Promise<string> {
     if (!apiKey) throw new Error("MISSING_API_KEY");
-    const ai = new GoogleGenAI({ apiKey });
+
+    // We will initialize GoogleGenAI only if not using groq to avoid missing key errors if they passed a groq key instead
+    const isGroq = model === "llama-3.3-70b-versatile";
+    const ai = !isGroq ? new GoogleGenAI({ apiKey }) : null;
 
     try {
       let currentPrompt = SYSTEM_PROMPT;
@@ -607,17 +611,58 @@ export const geminiService = {
         }
       }
 
-      const chat = ai.chats.create({
-        model: model,
-        config: {
-          systemInstruction: currentPrompt,
-        },
-      });
+      if (isGroq) {
+        // Groq API implementation
+        const groq = new Groq({ apiKey, dangerouslyAllowBrowser: true });
 
-      // We need to send history if possible, but the SDK's chat.sendMessage only takes the new message.
-      // To simulate history, we can either use generateContent with full history, or just send the new message if we maintain the chat instance.
-      // Since we are stateless here, let's use generateContent with history.
-      
+        const groqMessages: any[] = [
+          {
+            role: "system",
+            content: currentPrompt
+          }
+        ];
+
+        for (const msg of history) {
+          groqMessages.push({
+            role: msg.role === 'model' ? 'assistant' : 'user',
+            content: msg.content
+          });
+        }
+
+        groqMessages.push({
+          role: "user",
+          content: newMessage
+        });
+
+        const callGroqApi = async (retryCount = 0): Promise<string> => {
+          try {
+            const chatCompletion = await groq.chat.completions.create({
+              messages: groqMessages,
+              model: model,
+              temperature: 0.7,
+              max_tokens: 2048,
+              top_p: 1,
+              stream: false,
+              stop: null
+            });
+            return chatCompletion.choices[0]?.message?.content || "Desculpe, não consegui gerar uma resposta.";
+          } catch (error: any) {
+             const isRateLimit = error?.status === 429 || error?.message?.includes("429");
+             if (isRateLimit && retryCount < 3) {
+                console.warn(`Groq Rate limit reached. Retrying in 10s...`);
+                await new Promise(resolve => setTimeout(resolve, 10000));
+                return callGroqApi(retryCount + 1);
+             }
+             throw error;
+          }
+        };
+
+        return await callGroqApi();
+      }
+
+      // Gemini API Implementation
+      if (!ai) throw new Error("Google AI not initialized");
+
       const contents = history.map(msg => ({
         role: msg.role,
         parts: [{ text: msg.content }]

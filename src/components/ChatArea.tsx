@@ -14,10 +14,11 @@ interface ChatAreaProps {
   collections: Collection[];
   onNotebookSaved: () => void;
   userApiKey: string;
+  userGroqKey?: string;
   onOpenSettings: () => void;
 }
 
-export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSaved, userApiKey, onOpenSettings }: ChatAreaProps) {
+export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSaved, userApiKey, userGroqKey, onOpenSettings }: ChatAreaProps) {
   const { user } = useAuth();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -61,10 +62,18 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
     e?.preventDefault();
     if (!input.trim() || !user || isLoading) return;
 
-    if (!userApiKey) {
-      alert("Você precisa configurar sua chave de API do Gemini antes de continuar.");
-      onOpenSettings();
-      return;
+    if (selectedModel === 'llama-3.3-70b-versatile') {
+      if (!userGroqKey) {
+        alert("Você precisa configurar sua chave de API da Groq antes de usar o modelo Llama 3.");
+        onOpenSettings();
+        return;
+      }
+    } else {
+      if (!userApiKey) {
+        alert("Você precisa configurar sua chave de API do Gemini antes de continuar.");
+        onOpenSettings();
+        return;
+      }
     }
 
     const newMessage: Message = {
@@ -84,7 +93,8 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
       await dbService.updateChatMessages(user.uid, chat.id, updatedMessages);
       
       // Get AI response
-      const responseText = await geminiService.sendMessage(localMessages, newMessage.content, selectedModel, chat.agent || 'estudo', userApiKey);
+      const apiKeyToUse = selectedModel === 'llama-3.3-70b-versatile' ? userGroqKey! : userApiKey;
+      const responseText = await geminiService.sendMessage(localMessages, newMessage.content, selectedModel, chat.agent || 'estudo', apiKeyToUse);
       
       const modelMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -175,6 +185,7 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
           >
             <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recomendado)</option>
             <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+            <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Groq)</option>
             <option value="gemini-3-flash-preview">Gemini 3 Flash (Preview)</option>
             <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
           </select>
