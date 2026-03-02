@@ -235,7 +235,7 @@ const fetchFontes = async () => {
 };
 
 export const geminiService = {
-  async sendMessage(history: Message[], newMessage: string, model: string = "gemini-3.1-pro-preview", agent: 'estudo' | 'apostila' = 'estudo', apiKey: string): Promise<string> {
+  async sendMessage(history: Message[], newMessage: string, model: string = "gemini-3-flash-preview", agent: 'estudo' | 'apostila' = 'estudo', apiKey: string): Promise<string> {
     if (!apiKey) throw new Error("MISSING_API_KEY");
     const ai = new GoogleGenAI({ apiKey });
 
