@@ -319,11 +319,35 @@ export const geminiService = {
           return response.text || "Desculpe, não consegui gerar uma resposta.";
         } catch (error: any) {
           // Check if it's a 429 error or quota exceeded
-          const isRateLimit = error?.status === 429 || error?.message?.includes("429") || error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED");
+          const isRateLimit = error?.status === 429 || error?.status === "RESOURCE_EXHAUSTED" || error?.message?.includes("429") || error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED");
 
-          if (isRateLimit && retryCount < 2) {
-            console.warn(`Rate limit reached (429/Quota). Retrying in 15 seconds... (Attempt ${retryCount + 1})`);
-            await new Promise(resolve => setTimeout(resolve, 15000)); // wait 15 seconds
+          if (isRateLimit && retryCount < 3) {
+            let delayMs = 15000; // default 15s
+
+            // Try to extract retryDelay from Google RPC error details
+            if (error?.details && Array.isArray(error.details)) {
+              const retryInfo = error.details.find((d: any) => d['@type'] === 'type.googleapis.com/google.rpc.RetryInfo');
+              if (retryInfo && retryInfo.retryDelay) {
+                // retryDelay might be "47s" or "12.5s"
+                const delayString = retryInfo.retryDelay;
+                const seconds = parseFloat(delayString.replace('s', ''));
+                if (!isNaN(seconds)) {
+                  delayMs = (seconds * 1000) + 1000; // wait that amount + 1 second buffer
+                }
+              }
+            } else if (error?.message) {
+               // Fallback: Try to parse "Please retry in X.XXXs." from message
+               const match = error.message.match(/Please retry in ([\d\.]+)s/);
+               if (match && match[1]) {
+                 const seconds = parseFloat(match[1]);
+                 if (!isNaN(seconds)) {
+                   delayMs = (seconds * 1000) + 1000;
+                 }
+               }
+            }
+
+            console.warn(`Rate limit reached (429/Quota). Retrying in ${Math.round(delayMs / 1000)} seconds... (Attempt ${retryCount + 1})`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
             return callApi(retryCount + 1);
           }
 
