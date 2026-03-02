@@ -1,9 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { Message } from "../types";
 
-const apiKey = process.env.GEMINI_API_KEY || "AIzaSyAFfM_7xkp_J8khQquzLUJf6wuWXdoLU8E";
-const ai = new GoogleGenAI({ apiKey });
-
 const SYSTEM_PROMPT = `Seja um pesquisador CURIOSO querendo pesquisar todos os porquês de ação ou mesmo falta da ação, quem estava envolvido, onde aconteceu (detalhes geográficos), como foi feito, qual era a situação, quando isso aconteceu, etc.
 
 As fontes permitidas para pesquisa SEMPRE devem ser incluídas na pesquisa, mesmo que sejam anexados documentos. Elas devem incluir todos os conteúdos em português do Brasil do site jw.org e todas as publicações disponíveis no site wol.jw.org, especialmente as edições da revista A Sentinela.
@@ -238,7 +235,10 @@ const fetchFontes = async () => {
 };
 
 export const geminiService = {
-  async sendMessage(history: Message[], newMessage: string, model: string = "gemini-3.1-pro-preview", agent: 'estudo' | 'apostila' = 'estudo'): Promise<string> {
+  async sendMessage(history: Message[], newMessage: string, model: string = "gemini-3.1-pro-preview", agent: 'estudo' | 'apostila' = 'estudo', apiKey: string): Promise<string> {
+    if (!apiKey) throw new Error("MISSING_API_KEY");
+    const ai = new GoogleGenAI({ apiKey });
+
     try {
       let currentPrompt = agent === 'apostila' ? APOSTILA_PROMPT : SYSTEM_PROMPT;
       
@@ -285,7 +285,10 @@ export const geminiService = {
     }
   },
 
-  async suggestNotebookOrganization(chatContent: string, collections: any[]): Promise<{ collectionName: string, notebookTitle: string }> {
+  async suggestNotebookOrganization(chatContent: string, collections: any[], apiKey: string): Promise<{ collectionName: string, notebookTitle: string }> {
+    if (!apiKey) throw new Error("MISSING_API_KEY");
+    const ai = new GoogleGenAI({ apiKey });
+
     try {
       const prompt = `Analise o seguinte conteúdo de estudo e sugira uma organização.
       

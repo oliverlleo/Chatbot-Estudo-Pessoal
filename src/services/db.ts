@@ -3,6 +3,21 @@ import { db } from '../lib/firebase';
 import { Collection, Notebook, ChatSession, Message } from '../types';
 
 export const dbService = {
+  // User Settings
+  async saveUserSettings(userId: string, apiKey: string): Promise<void> {
+    const docRef = doc(db, `users/${userId}`);
+    await setDoc(docRef, { apiKey }, { merge: true });
+  },
+
+  async getUserSettings(userId: string): Promise<{ apiKey?: string }> {
+    const docRef = doc(db, `users/${userId}`);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data() as { apiKey?: string };
+    }
+    return {};
+  },
+
   // Collections
   async getCollections(userId: string): Promise<Collection[]> {
     const q = query(collection(db, `users/${userId}/collections`), orderBy('createdAt', 'desc'));

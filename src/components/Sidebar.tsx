@@ -1,6 +1,6 @@
 import React from 'react';
 import { Collection, Notebook, ChatSession } from '../types';
-import { MessageSquare, Book, Folder, Plus, LogOut, User } from 'lucide-react';
+import { MessageSquare, Book, Folder, Plus, LogOut, User, Settings } from 'lucide-react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
 
@@ -8,12 +8,13 @@ interface SidebarProps {
   collections: Collection[];
   notebooks: Notebook[];
   chats: ChatSession[];
-  activeTab: 'chat' | 'notebook';
+  activeTab: 'chat' | 'notebook' | 'settings';
   activeChatId: string | null;
   activeNotebookId: string | null;
   onSelectChat: (id: string) => void;
   onSelectNotebook: (id: string) => void;
   onNewChat: (agent: 'estudo' | 'apostila') => void;
+  onOpenSettings: () => void;
   onLogout: () => void;
   userEmail: string;
 }
@@ -28,6 +29,7 @@ export default function Sidebar({
   onSelectChat,
   onSelectNotebook,
   onNewChat,
+  onOpenSettings,
   onLogout,
   userEmail
 }: SidebarProps) {
@@ -111,7 +113,17 @@ export default function Sidebar({
         </div>
       </div>
 
-      <div className="mt-auto pt-4 border-t border-white/10">
+      <div className="mt-auto pt-4 border-t border-white/10 space-y-2">
+        <button
+          onClick={onOpenSettings}
+          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+            activeTab === 'settings' ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          <span className="truncate">Configurações</span>
+        </button>
+        
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-2 overflow-hidden">
             <div className="w-8 h-8 bg-black/30 rounded-full flex items-center justify-center shrink-0">

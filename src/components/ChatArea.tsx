@@ -13,9 +13,11 @@ interface ChatAreaProps {
   onUpdateChat: () => void;
   collections: Collection[];
   onNotebookSaved: () => void;
+  userApiKey: string;
+  onOpenSettings: () => void;
 }
 
-export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSaved }: ChatAreaProps) {
+export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSaved, userApiKey, onOpenSettings }: ChatAreaProps) {
   const { user } = useAuth();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +61,12 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
     e?.preventDefault();
     if (!input.trim() || !user || isLoading) return;
 
+    if (!userApiKey) {
+      alert("Você precisa configurar sua chave de API do Gemini antes de continuar.");
+      onOpenSettings();
+      return;
+    }
+
     const newMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -76,7 +84,7 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
       await dbService.updateChatMessages(user.uid, chat.id, updatedMessages);
       
       // Get AI response
-      const responseText = await geminiService.sendMessage(localMessages, newMessage.content, selectedModel, chat.agent || 'estudo');
+      const responseText = await geminiService.sendMessage(localMessages, newMessage.content, selectedModel, chat.agent || 'estudo', userApiKey);
       
       const modelMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -96,11 +104,12 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
       
       let errorMessage = "Erro ao obter resposta da IA.";
       if (error?.message?.includes('leaked')) {
-        errorMessage = "Sua chave de API do Gemini vazou e foi bloqueada pelo Google. Por favor, configure uma nova chave no painel de Secrets (Segredos) do AI Studio.";
+        errorMessage = "Sua chave de API do Gemini vazou e foi bloqueada pelo Google. Por favor, configure uma nova chave nas Configurações.";
       } else if (error?.message?.includes('quota') || error?.message?.includes('429')) {
-        errorMessage = "Você excedeu o limite de uso (quota) da sua chave de API do Gemini. Por favor, verifique seu plano ou configure uma nova chave no painel de Secrets.";
+        errorMessage = "Você excedeu o limite de uso (quota) da sua chave de API do Gemini. Por favor, verifique seu plano ou configure uma nova chave nas Configurações.";
       } else if (error?.message?.includes('MISSING_API_KEY')) {
-        errorMessage = "Chave de API do Gemini não configurada. Por favor, adicione-a no painel de Secrets do AI Studio.";
+        errorMessage = "Chave de API do Gemini não configurada. Por favor, adicione-a nas Configurações.";
+        onOpenSettings();
       }
 
       alert(errorMessage);
@@ -111,11 +120,18 @@ export default function ChatArea({ chat, onUpdateChat, collections, onNotebookSa
 
   const handleSaveToNotebook = async () => {
     if (!user || localMessages.length === 0 || isSaving) return;
+    
+    if (!userApiKey) {
+      alert("Você precisa configurar sua chave de API do Gemini antes de continuar.");
+      onOpenSettings();
+      return;
+    }
+
     setIsSaving(true);
 
     try {
       const chatContent = localMessages.map(m => `${m.role === 'user' ? 'Pergunta' : 'Resposta'}:\n${m.content}`).join('\n\n');
-      const suggestion = await geminiService.suggestNotebookOrganization(chatContent, collections);
+      const suggestion = await geminiService.suggestNotebookOrganization(chatContent, collections, userApiKey);
       
       let collectionId = collections.find(c => c.name.toLowerCase() === suggestion.collectionName.toLowerCase())?.id;
       

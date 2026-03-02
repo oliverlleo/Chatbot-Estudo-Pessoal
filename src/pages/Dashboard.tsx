@@ -5,6 +5,7 @@ import { Collection, Notebook, ChatSession, Message } from '../types';
 import Sidebar from '../components/Sidebar';
 import ChatArea from '../components/ChatArea';
 import NotebookArea from '../components/NotebookArea';
+import SettingsArea from '../components/SettingsArea';
 import { Menu, X } from 'lucide-react';
 
 export default function Dashboard() {
@@ -12,8 +13,9 @@ export default function Dashboard() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [chats, setChats] = useState<ChatSession[]>([]);
+  const [userApiKey, setUserApiKey] = useState<string>('');
   
-  const [activeTab, setActiveTab] = useState<'chat' | 'notebook'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'notebook' | 'settings'>('chat');
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeNotebookId, setActiveNotebookId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -26,12 +28,16 @@ export default function Dashboard() {
 
   const loadData = async () => {
     if (!user) return;
-    const [cols, chs] = await Promise.all([
+    const [cols, chs, settings] = await Promise.all([
       dbService.getCollections(user.uid),
-      dbService.getChats(user.uid)
+      dbService.getChats(user.uid),
+      dbService.getUserSettings(user.uid)
     ]);
     setCollections(cols);
     setChats(chs);
+    if (settings.apiKey) {
+      setUserApiKey(settings.apiKey);
+    }
     
     // Load all notebooks for all collections
     const allNotebooks: Notebook[] = [];
@@ -79,6 +85,7 @@ export default function Dashboard() {
           onSelectChat={(id) => { setActiveChatId(id); setActiveTab('chat'); setIsSidebarOpen(false); }}
           onSelectNotebook={(id) => { setActiveNotebookId(id); setActiveTab('notebook'); setIsSidebarOpen(false); }}
           onNewChat={handleNewChat}
+          onOpenSettings={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}
           onLogout={logout}
           userEmail={user?.email || ''}
         />
@@ -92,11 +99,18 @@ export default function Dashboard() {
             onUpdateChat={loadData}
             collections={collections}
             onNotebookSaved={loadData}
+            userApiKey={userApiKey}
+            onOpenSettings={() => setActiveTab('settings')}
           />
-        ) : (
+        ) : activeTab === 'notebook' ? (
           <NotebookArea 
             notebook={activeNotebook}
             onUpdateNotebook={loadData}
+          />
+        ) : (
+          <SettingsArea 
+            currentApiKey={userApiKey}
+            onSaveApiKey={(key) => setUserApiKey(key)}
           />
         )}
       </div>
