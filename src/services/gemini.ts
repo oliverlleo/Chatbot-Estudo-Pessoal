@@ -530,37 +530,31 @@ const fetchFontes = async (todayString: string, agent: 'estudo' | 'apostila' | '
   } else if (agent === 'texto-diario') {
     filesToTry = ['es26_T.pdf', 'Matinais.csv'];
   } else if (agent === 'a-sentinela') {
-    const dateMappingSentinela = [
-      { file: 'w_T_202601_01.RTF', start: '2026-03-02', end: '2026-03-08' },
-      { file: 'w_T_202601_02.RTF', start: '2026-03-09', end: '2026-03-15' },
-      { file: 'w_T_202601_03.RTF', start: '2026-03-16', end: '2026-03-22' },
-      { file: 'w_T_202601_04.RTF', start: '2026-03-23', end: '2026-03-29' },
-      { file: 'w_T_202601_05.RTF', start: '2026-03-30', end: '2026-04-05' }
+    // We will fetch all files blindly as requested to guarantee it finds them,
+    // since the strict date boundaries might fail if the user is in 2024/2025 but the files are for 2026.
+    filesToTry = [
+      'w_T_202601_01.RTF',
+      'w_T_202601_02.RTF',
+      'w_T_202601_03.RTF',
+      'w_T_202601_04.RTF',
+      'w_T_202601_05.RTF',
+      'w_T_202601_01.rtf',
+      'w_T_202601_02.rtf',
+      'w_T_202601_03.rtf',
+      'w_T_202601_04.rtf',
+      'w_T_202601_05.rtf'
     ];
-
-    for (const mapping of dateMappingSentinela) {
-      const start = new Date(mapping.start);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(mapping.end);
-      end.setHours(23, 59, 59, 999);
-      if (currentDate >= start && currentDate <= end) {
-        targetRtfFile = mapping.file;
-        break;
-      }
-    }
-
-    if (targetRtfFile) {
-      filesToTry = [targetRtfFile];
-    } else {
-      // Se não encontrou da semana atual, pra não dar erro de limite, não vai carregar tudo.
-      // Vai deixar o Prompt ativar a trava crítica para o usuário adicionar.
-      filesToTry = [];
-    }
   } else if (agent === 'historias-biblicas') {
-    // We will attempt to load the common ones or specifically requested.
-    // According to the prompt, history files will be uploaded, we don't have a specific list.
-    // If there is a standard list like my-book-of-bible-stories.pdf we could put it here.
-    // Assuming 'historias-biblicas' might load a standard file or we leave it empty if there are none predefined yet.
+    filesToTry = [
+      'historia 64.pdf',
+      'historia 65.pdf',
+      'historia 64.rtf',
+      'historia 65.rtf',
+      'historia 64.txt',
+      'historia 65.txt',
+      'historia_64.pdf',
+      'historia_65.pdf'
+    ];
   }
 
   let filesContent = '';
